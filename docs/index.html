@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPINE</title>
+<meta name="description" content="Evaluation, temporal splitting and decision logic
+ shared by four MAIB Term 4 projects. Every number on this page is regenerated from a run.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Spectral:ital,wght@0,300;0,400;0,600;1,400&display=swap">
+<style>
+:root {
+  --ground: #FBFBF9;
+  --surface: #FFFFFF;
+  --ink: #14161A;
+  --ink-muted: #5B6068;
+  --rule: #DCDDD8;
+  --rule-soft: #EDEEE9;
+  --accent: #2B4C9B;
+  --accent-soft: #E4E9F5;
+  --graphite: #9DA3AC;
+  --fail: #A02B1F;
+  --font-prose: "Spectral", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --measure: 34rem;
+  --step: 1.5rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #101215;
+    --surface: #171A1E;
+    --ink: #E6E7E4;
+    --ink-muted: #8B9096;
+    --rule: #262A2F;
+    --rule-soft: #1D2126;
+    --accent: #7A9BE8;
+    --accent-soft: #1B2434;
+    --graphite: #656B74;
+    --fail: #E07A6E;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #101215;
+  --surface: #171A1E;
+  --ink: #E6E7E4;
+  --ink-muted: #8B9096;
+  --rule: #262A2F;
+  --rule-soft: #1D2126;
+  --accent: #7A9BE8;
+  --accent-soft: #1B2434;
+  --graphite: #656B74;
+  --fail: #E07A6E;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-prose);
+  font-size: 17px;
+  line-height: 1.62;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+}
+h1, h2, h3 { font-weight: 600; line-height: 1.18; margin: 0; letter-spacing: -0.012em; }
+p { margin: 0 0 0.9em; }
+code { font-family: var(--font-mono); font-size: 0.86em; font-weight: 500; }
+a { color: var(--accent); }
+
+.wrap { width: min(100% - 2.5rem, 68rem); margin-inline: auto; }
+.skip {
+  position: absolute; left: -9999px; top: 0; background: var(--accent);
+  color: var(--ground); padding: 0.6rem 1rem; z-index: 10;
+}
+.skip:focus { left: 0; }
+:where(a, button):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------- masthead */
+.masthead { border-bottom: 1px solid var(--rule); background: var(--ground); }
+.masthead-inner {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 1.1rem 0 0.9rem; gap: 1rem;
+}
+.wordmark { display: flex; align-items: baseline; gap: 0.85rem; flex-wrap: wrap; }
+.wordmark-name {
+  font-family: var(--font-mono); font-weight: 600; font-size: 1.02rem;
+  letter-spacing: 0.24em;
+}
+.wordmark-meta {
+  font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-muted);
+  letter-spacing: 0.08em;
+}
+.theme {
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.08em;
+  background: none; border: 1px solid var(--ink-muted); color: var(--ink-muted);
+  padding: 0.42rem 0.8rem; cursor: pointer; display: inline-flex; align-items: center;
+  gap: 0.5rem; transition: border-color 150ms ease, color 150ms ease;
+  min-height: 34px;
+}
+.theme:hover { border-color: var(--accent); color: var(--ink); }
+.theme-dot {
+  width: 8px; height: 8px; border: 1px solid currentColor; border-radius: 50%;
+  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+}
+
+/* -------------------------------------------------------------------- hero */
+.hero { padding: 4.5rem 0 3rem; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-muted); margin-bottom: 1.6rem;
+}
+h1 { font-size: clamp(1.85rem, 1.1rem + 3.1vw, 3.35rem); max-width: 20ch; }
+h1 + .lede { margin-top: 1.5rem; }
+.lede { max-width: var(--measure); font-size: 1.06rem; color: var(--ink-muted); }
+
+.hero-figure { margin: 3rem 0 0; }
+.fig { width: 100%; height: auto; display: block; overflow: visible; }
+.fig-hero { max-width: 52rem; }
+figcaption { color: var(--ink-muted); font-size: 0.88rem; }
+.hero-figure figcaption { margin-top: 1rem; max-width: var(--measure); }
+.key {
+  display: flex; gap: 1.4rem; flex-wrap: wrap; font-family: var(--font-mono);
+  font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 0.9rem;
+}
+.key span { display: inline-flex; align-items: center; gap: 0.45rem; }
+.swatch { width: 15px; height: 9px; display: inline-block; }
+.swatch-train { background: var(--graphite); }
+.swatch-test { background: var(--accent); }
+.swatch-gap {
+  background: repeating-linear-gradient(
+    45deg, var(--rule), var(--rule) 2px, transparent 2px, transparent 4px
+  );
+  border: 1px solid var(--rule);
+}
+
+.assertion {
+  margin-top: 2.4rem; padding-top: 1.4rem; border-top: 1px solid var(--rule);
+  font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.9;
+  color: var(--ink-muted); max-width: 46rem;
+}
+.assertion strong { color: var(--ink); font-weight: 600; }
+.assertion-rule { display: block; margin-top: 0.5rem; }
+.assertion-rule code { color: var(--accent); }
+
+/* ------------------------------------------------------------------- scope */
+.scope {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 2.5rem; padding: 3rem 0; border-top: 1px solid var(--rule);
+}
+.scope h2 {
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-muted); margin-bottom: 1.1rem;
+}
+.scope ul { list-style: none; margin: 0; padding: 0; }
+.scope li {
+  padding: 0.7rem 0; border-top: 1px solid var(--rule-soft); font-size: 0.95rem;
+}
+.scope-col-negative li { color: var(--ink-muted); }
+
+/* ------------------------------------------------------------ section heads */
+.section-head { padding: 3rem 0 1.8rem; border-top: 1px solid var(--rule); }
+.section-head h2 { font-size: clamp(1.35rem, 1rem + 1.2vw, 1.85rem); }
+.section-note { max-width: var(--measure); color: var(--ink-muted); margin-top: 0.7rem; }
+
+/* ------------------------------------------------------------------ ledger */
+.ledger { border-top: 1px solid var(--rule); }
+.ledger-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.5rem 2.5rem;
+  align-items: start; padding: 1.15rem 0; border-bottom: 1px solid var(--rule-soft);
+}
+.ledger-row.failed { background: color-mix(in srgb, var(--fail) 7%, transparent); }
+.ledger-claim p { margin: 0; font-size: 0.97rem; }
+.ledger-source {
+  font-family: var(--font-mono); font-size: 0.71rem; color: var(--ink-muted);
+  margin-top: 0.4rem !important; letter-spacing: 0.01em; word-break: break-word;
+}
+.ledger-source .sep { opacity: 0.62; font-style: normal; }
+
+.ledger-figs { display: flex; gap: 1.5rem; align-items: baseline; }
+.cell { display: flex; flex-direction: column; gap: 0.28rem; }
+.cell-key {
+  font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--ink-muted);
+}
+.num {
+  font-family: var(--font-mono); font-size: 0.86rem; font-weight: 500;
+  display: inline-flex; white-space: nowrap;
+}
+.num-w { flex: 1 1 auto; text-align: right; min-width: 3.1ch; }
+.num-p { flex: 0 0 auto; opacity: 0.5; }
+.num-f { flex: 1 1 auto; text-align: left; min-width: 6ch; }
+.num-sci { justify-content: flex-end; min-width: 8ch; color: var(--ink-muted); }
+.cell-delta .num-sci { color: var(--ink); }
+.mark {
+  font-family: var(--font-mono); font-size: 0.63rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent);
+  padding: 0.24rem 0.5rem; white-space: nowrap;
+}
+.failed .mark { color: var(--fail); border-color: var(--fail); }
+
+/* ----------------------------------------------------------------- figures */
+.grid-figures {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+  gap: 3rem 3.5rem;
+}
+.grid-figures figure { margin: 0; }
+.grid-figures h3 {
+  font-family: var(--font-mono); font-size: 0.74rem; letter-spacing: 0.12em;
+  text-transform: uppercase; padding-bottom: 0.8rem; margin-bottom: 1.2rem;
+  border-bottom: 1px solid var(--rule);
+}
+.grid-figures figcaption { margin-top: 0.9rem; }
+.fixture {
+  font-family: var(--font-mono); font-size: 0.7rem; color: var(--ink-muted);
+  border-left: 2px solid var(--rule); padding-left: 0.7rem; margin-top: 0.7rem;
+}
+
+/* --------------------------------------------------------------------- svg */
+.bar-train { fill: var(--graphite); }
+.bar-test { fill: var(--accent); }
+.bar-gap { fill: var(--rule); opacity: 0.85; }
+.origin { stroke: var(--accent); stroke-width: 1; }
+.axis { stroke: var(--rule); stroke-width: 1; }
+.grid { stroke: var(--rule-soft); stroke-width: 1; }
+.reference { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 3 3; }
+.series { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+.series-muted { fill: none; stroke: var(--graphite); stroke-width: 1.4; }
+.point { fill: var(--accent); }
+.point-muted { fill: var(--graphite); }
+.svg-label-r, .svg-tick, .svg-note {
+  font-family: var(--font-mono); fill: var(--ink-muted); font-size: 9.5px;
+}
+.svg-label-r { text-anchor: end; }
+.svg-tick { text-anchor: middle; }
+.svg-tick-r { text-anchor: end; }
+.svg-note { text-anchor: start; font-size: 9px; }
+.svg-note-end { text-anchor: end; }
+.svg-note-accent { fill: var(--accent); }
+
+.fold { opacity: 0; animation: reveal 220ms ease-out forwards; animation-delay: var(--d); }
+@keyframes reveal {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* --------------------------------------------------------------------- api */
+.api-module { padding-top: 2.2rem; }
+.api-module > h2 { font-size: 1.05rem; font-family: var(--font-mono); font-weight: 600; }
+.module-blurb { color: var(--ink-muted); font-size: 0.92rem; margin-top: 0.4rem; }
+.member { padding: 1.4rem 0; border-top: 1px solid var(--rule-soft); }
+.member h3 {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.55rem;
+  font-weight: 400; font-size: 0.95rem;
+}
+.member-kind {
+  font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--ink-muted); border: 1px solid var(--rule);
+  padding: 0.14rem 0.4rem;
+}
+.member h3 code { font-size: 0.95rem; font-weight: 600; color: var(--accent); }
+.member-sig {
+  font-family: var(--font-mono); font-size: 0.78rem; color: var(--ink-muted);
+  word-break: break-word;
+}
+.member p { margin: 0.55rem 0 0; max-width: var(--measure); font-size: 0.95rem; }
+.example {
+  font-family: var(--font-mono); font-size: 0.76rem; line-height: 1.75;
+  background: var(--surface); border: 1px solid var(--rule); padding: 0.9rem 1.1rem;
+  margin: 0.9rem 0 0; overflow-x: auto; white-space: pre;
+}
+.example code { font-size: inherit; font-weight: 400; }
+
+/* ------------------------------------------------------------------ footer */
+footer { padding: 3rem 0 5rem; border-top: 1px solid var(--rule); margin-top: 3rem; }
+footer h2 {
+  font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-muted); margin-bottom: 1.1rem;
+}
+footer p { max-width: var(--measure); color: var(--ink-muted); font-size: 0.92rem; }
+.versions {
+  list-style: none; padding: 0; margin: 1.8rem 0 0; display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0;
+  border-top: 1px solid var(--rule);
+}
+.versions li {
+  display: flex; justify-content: space-between; gap: 1rem; padding: 0.55rem 0;
+  border-bottom: 1px solid var(--rule-soft); font-family: var(--font-mono);
+  font-size: 0.73rem; margin-right: 2rem;
+}
+.versions li span:first-child { color: var(--ink-muted); }
+.colophon { margin-top: 2rem; font-size: 0.82rem; }
+
+/* ------------------------------------------------------------- narrow view */
+@media (max-width: 720px) {
+  body { font-size: 16px; }
+  .hero { padding: 3rem 0 2rem; }
+  .ledger-row { grid-template-columns: 1fr; gap: 1rem; }
+  .ledger-figs { flex-wrap: wrap; gap: 1rem 1.6rem; }
+  .grid-figures { gap: 2.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fold { opacity: 1; animation: none; }
+  * { transition-duration: 1ms !important; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#verifications">Skip to the verifications</a>
+
+<header class="masthead">
+  <div class="wrap masthead-inner">
+    <div class="wordmark">
+      <span class="wordmark-name">SPINE</span>
+      <span class="wordmark-meta">01 &middot; shared library</span>
+    </div>
+    <button id="theme" type="button" class="theme" aria-live="polite">
+      <span class="theme-dot" aria-hidden="true"></span><span id="theme-label">Dark</span>
+    </button>
+  </div>
+</header>
+
+<main>
+<section class="hero wrap">
+  <p class="eyebrow">MAIB Term 4 &middot; SP Jain School of Global Management, Dubai</p>
+  <h1>The split boundary, the MASE denominator,<br>and the critical fractile.</h1>
+  <p class="lede">
+    Four projects need the same three things: honest evaluation, temporal splitting,
+    and decisions under asymmetric cost. SPINE holds those and nothing else &mdash;
+    no models, no estimators, no framework. These are the parts that are easy to get
+    subtly wrong and expensive to get wrong three times.
+  </p>
+
+  <figure class="hero-figure">
+    <svg viewBox="0 0 640 214" role="img" aria-label="Five rolling-origin folds over 60 observations. Each fold trains on everything before an embargo gap and tests on the six observations after it; no training window ever reaches past its own test window." class="fig fig-hero"><text x="34.0" y="42.0" class="svg-label-r">1</text><g class="fold" style="--d:0.00s"><rect x="44.0" y="30.0" width="257.6" height="15.0" class="bar-train"/><rect x="301.6" y="30.0" width="18.4" height="15.0" class="bar-gap"/><rect x="320.0" y="30.0" width="55.2" height="15.0" class="bar-test"/><line x1="320.0" y1="26.0" x2="320.0" y2="49.0" class="origin"/></g><text x="34.0" y="72.0" class="svg-label-r">2</text><g class="fold" style="--d:0.04s"><rect x="44.0" y="60.0" width="312.8" height="15.0" class="bar-train"/><rect x="356.8" y="60.0" width="18.4" height="15.0" class="bar-gap"/><rect x="375.2" y="60.0" width="55.2" height="15.0" class="bar-test"/><line x1="375.2" y1="56.0" x2="375.2" y2="79.0" class="origin"/></g><text x="34.0" y="102.0" class="svg-label-r">3</text><g class="fold" style="--d:0.08s"><rect x="44.0" y="90.0" width="368.0" height="15.0" class="bar-train"/><rect x="412.0" y="90.0" width="18.4" height="15.0" class="bar-gap"/><rect x="430.4" y="90.0" width="55.2" height="15.0" class="bar-test"/><line x1="430.4" y1="86.0" x2="430.4" y2="109.0" class="origin"/></g><text x="34.0" y="132.0" class="svg-label-r">4</text><g class="fold" style="--d:0.12s"><rect x="44.0" y="120.0" width="423.2" height="15.0" class="bar-train"/><rect x="467.2" y="120.0" width="18.4" height="15.0" class="bar-gap"/><rect x="485.6" y="120.0" width="55.2" height="15.0" class="bar-test"/><line x1="485.6" y1="116.0" x2="485.6" y2="139.0" class="origin"/></g><text x="34.0" y="162.0" class="svg-label-r">5</text><g class="fold" style="--d:0.16s"><rect x="44.0" y="150.0" width="478.4" height="15.0" class="bar-train"/><rect x="522.4" y="150.0" width="18.4" height="15.0" class="bar-gap"/><rect x="540.8" y="150.0" width="55.2" height="15.0" class="bar-test"/><line x1="540.8" y1="146.0" x2="540.8" y2="169.0" class="origin"/></g><line x1="44.0" y1="186.0" x2="596.0" y2="186.0" class="axis"/><line x1="44.0" y1="186.0" x2="44.0" y2="190.0" class="axis"/><text x="44.0" y="202.0" class="svg-tick">0</text><line x1="136.0" y1="186.0" x2="136.0" y2="190.0" class="axis"/><text x="136.0" y="202.0" class="svg-tick">10</text><line x1="228.0" y1="186.0" x2="228.0" y2="190.0" class="axis"/><text x="228.0" y="202.0" class="svg-tick">20</text><line x1="320.0" y1="186.0" x2="320.0" y2="190.0" class="axis"/><text x="320.0" y="202.0" class="svg-tick">30</text><line x1="412.0" y1="186.0" x2="412.0" y2="190.0" class="axis"/><text x="412.0" y="202.0" class="svg-tick">40</text><line x1="504.0" y1="186.0" x2="504.0" y2="190.0" class="axis"/><text x="504.0" y="202.0" class="svg-tick">50</text><line x1="596.0" y1="186.0" x2="596.0" y2="190.0" class="axis"/><text x="596.0" y="202.0" class="svg-tick">60</text><text x="596.0" y="214.0" class="svg-tick svg-tick-r">observation index &#8594;</text></svg>
+    <figcaption>
+      <div class="key">
+        <span><i class="swatch swatch-train"></i>train</span>
+        <span><i class="swatch swatch-gap"></i>embargo</span>
+        <span><i class="swatch swatch-test"></i>test</span>
+      </div>
+      <p>
+        <code>RollingOriginSplit(n_splits=5, horizon=6, step=6, gap=2)</code> over
+        60 observations, drawn from the folds the
+        splitter actually produced. The origin moves forward; no training window ever
+        reaches past the embargo into its own test window.
+      </p>
+    </figcaption>
+  </figure>
+
+  <p class="assertion">
+    <strong>21,473</strong> folds checked across every configuration in a
+    deterministic grid, plus <strong>250</strong> randomised
+    cases generated by hypothesis in the test suite.
+    <strong>0</strong> boundary violations.
+    <span class="assertion-rule"><code>max(train_index) + gap &lt; min(test_index), for every fold</code></span>
+  </p>
+</section>
+
+<section class="wrap scope">
+  <div class="scope-col">
+    <h2>What is here</h2>
+    <ul>
+      <li>Rolling-origin splits, expanding and sliding, with an embargo for lagged features</li>
+      <li>MASE scaled on the training window, pinball loss, PR-AUC, Brier,
+          calibration error, Qini</li>
+      <li>Newsvendor order quantities, safety stock, cost-sensitive thresholds</li>
+      <li>Group rates, disparity ratios, calibration by group</li>
+      <li>A model card renderer that refuses to omit a split or a proxy label</li>
+    </ul>
+  </div>
+  <div class="scope-col scope-col-negative">
+    <h2>What is not</h2>
+    <ul>
+      <li>Models. SPINE holds evaluation, not estimators.</li>
+      <li>Random splits. Every split here is temporal or group-aware.</li>
+      <li>MAPE. Undefined at zero, asymmetric, not comparable across scales.</li>
+      <li>Regulatory logic. Clause mapping lives in MIZAN, in one place.</li>
+      <li>Plotting. Functions return arrays; presentation is the caller's business.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="wrap" id="verifications">
+  <div class="section-head">
+    <h2>Verifications</h2>
+    <p class="section-note">
+      13 of 13 pass. Each row was computed by SPINE and checked
+      against something that shares no code with it &mdash; the Python standard library,
+      scikit-learn, Nixtla's utilsforecast, or arithmetic done by hand.
+    </p>
+  </div>
+  <div class="ledger"><div class="ledger-row"><div class="ledger-claim"><p>Optimal order for demand ~ Normal(100, 20) with cu=5, co=2</p><p class="ledger-source">spine.decisions.newsvendor_parametric <span class="sep">against</span> statistics.NormalDist, Python standard library</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">111</span><span class="num-p">.</span><span class="num-f">318976</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">111</span><span class="num-p">.</span><span class="num-f">318976</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">0</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">1.00e-09</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div><div class="ledger-row"><div class="ledger-claim"><p>That order quantity sits exactly at the critical fractile: F(Q*) = CF</p><p class="ledger-source">spine.decisions.newsvendor_parametric <span class="sep">against</span> the newsvendor optimality condition itself</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">714286</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">714286</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">0</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">1.00e-12</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div><div class="ledger-row"><div class="ledger-claim"><p>Critical fractile for cu=5, co=2 is 5/7</p><p class="ledger-source">spine.decisions.critical_fractile <span class="sep">against</span> hand arithmetic: cu / (cu + co)</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">714286</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">714286</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">0</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">1.00e-15</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div><div class="ledger-row"><div class="ledger-claim"><p>Order read off a 999-point quantile grid recovers the analytic optimum</p><p class="ledger-source">spine.decisions.newsvendor_empirical <span class="sep">against</span> spine.decisions.newsvendor_parametric on the same distribution</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">111</span><span class="num-p">.</span><span class="num-f">318986</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">111</span><span class="num-p">.</span><span class="num-f">318976</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">1.00e-05</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">1.00e-02</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div><div class="ledger-row"><div class="ledger-claim"><p>Safety stock at a 95% service level, demand sd 20 over a 4-period lead time</p><p class="ledger-source">spine.decisions.safety_stock <span class="sep">against</span> statistics.NormalDist, Python standard library</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">65</span><span class="num-p">.</span><span class="num-f">794145</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">65</span><span class="num-p">.</span><span class="num-f">794145</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">1.42e-14</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">1.00e-09</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div><div class="ledger-row"><div class="ledger-claim"><p>MASE on a seasonal reference series matches an independent implementation</p><p class="ledger-source">spine.metrics.mase <span class="sep">against</span> utilsforecast.losses.mase (Nixtla)</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">494644</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">494644</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">0</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">1.00e-12</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div><div class="ledger-row"><div class="ledger-claim"><p>A naive forecast on a random walk scores 1.0: no better than naive</p><p class="ledger-source">spine.metrics.mase <span class="sep">against</span> the definition of MASE</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">968996</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">1</span><span class="num-p">.</span><span class="num-f">000000</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">3.10e-02</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">5.00e-02</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div><div class="ledger-row"><div class="ledger-claim"><p>PR-AUC on an imbalanced sample matches scikit-learn&#x27;s average precision</p><p class="ledger-source">spine.metrics.pr_auc <span class="sep">against</span> sklearn.metrics.average_precision_score</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">518275</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">518275</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">0</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">1.00e-12</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div><div class="ledger-row"><div class="ledger-claim"><p>A perfectly calibrated sample has zero expected calibration error</p><p class="ledger-source">spine.metrics.expected_calibration_error <span class="sep">against</span> the definition of calibration</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">000000</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">000000</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">1.39e-16</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">1.00e-12</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div><div class="ledger-row"><div class="ledger-claim"><p>Brier score of [0.1, 0.2, 0.3, 0.9] against [0, 0, 1, 1] is 0.55/4</p><p class="ledger-source">spine.metrics.brier_score <span class="sep">against</span> hand arithmetic: (0.01 + 0.04 + 0.49 + 0.01) / 4</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">137500</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">137500</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">2.78e-17</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">1.00e-12</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div><div class="ledger-row"><div class="ledger-claim"><p>For calibrated probabilities the cost-optimal cutoff is C_FP / (C_FP + C_FN)</p><p class="ledger-source">spine.decisions.optimal_threshold <span class="sep">against</span> hand arithmetic: 1 / (1 + 5)</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">154871</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">166667</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">1.18e-02</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">2.00e-02</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div><div class="ledger-row"><div class="ledger-claim"><p>Using the analytic cutoff instead of the empirical optimum costs under 0.5% more, so the exact cutoff matters far less than the cost estimate</p><p class="ledger-source">spine.decisions.expected_cost_curve <span class="sep">against</span> percentage cost penalty; 0 would mean the two cutoffs tie</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">242362</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">0</span><span class="num-p">.</span><span class="num-f">000000</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">2.42e-01</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">5.00e-01</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div><div class="ledger-row"><div class="ledger-claim"><p>Simulated over 200,000 periods, ordering to the critical fractile beats ordering the mean forecast</p><p class="ledger-source">spine.decisions.newsvendor_cost <span class="sep">against</span> mean realised cost of ordering the mean, on the same demand draw</p></div><div class="ledger-figs"><div class="cell"><span class="cell-key">computed</span><span class="num"><span class="num-w">47</span><span class="num-p">.</span><span class="num-f">682738</span></span></div><div class="cell"><span class="cell-key">expected</span><span class="num"><span class="num-w">55</span><span class="num-p">.</span><span class="num-f">811032</span></span></div><div class="cell cell-delta"><span class="cell-key">&#916;</span><span class="num num-sci">8.13e+00</span></div><div class="cell cell-tol"><span class="cell-key">tolerance</span><span class="num num-sci">any</span></div><div class="cell cell-mark"><span class="mark">verified</span></div></div></div></div>
+</section>
+
+<section class="wrap">
+  <div class="section-head">
+    <h2>Behaviour on fixtures</h2>
+    <p class="section-note">
+      Every figure below is drawn from seeded synthetic data, not from a dataset. They
+      show that the functions run and what their output looks like. <strong>They are
+      not findings about anything.</strong>
+    </p>
+  </div>
+
+  <div class="grid-figures">
+    <figure>
+      <h3>Calibration</h3>
+      <svg viewBox="0 0 420 300" role="img" aria-label="Reliability diagram. Ten bins of an over-confident fixture model; points sit below the diagonal at high predicted probability, meaning the model predicts more risk than occurs." class="fig fig-square"><line x1="52.0" y1="260.0" x2="406.0" y2="260.0" class="axis"/><line x1="52.0" y1="260.0" x2="52.0" y2="264.0" class="axis"/><text x="52.0" y="276.0" class="svg-tick">0</text><line x1="140.5" y1="260.0" x2="140.5" y2="264.0" class="axis"/><text x="140.5" y="276.0" class="svg-tick">0.25</text><line x1="229.0" y1="260.0" x2="229.0" y2="264.0" class="axis"/><text x="229.0" y="276.0" class="svg-tick">0.5</text><line x1="317.5" y1="260.0" x2="317.5" y2="264.0" class="axis"/><text x="317.5" y="276.0" class="svg-tick">0.75</text><line x1="406.0" y1="260.0" x2="406.0" y2="264.0" class="axis"/><text x="406.0" y="276.0" class="svg-tick">1</text><line x1="52.0" y1="260.0" x2="406.0" y2="260.0" class="grid"/><text x="44.0" y="264.0" class="svg-label-r">0</text><line x1="52.0" y1="198.5" x2="406.0" y2="198.5" class="grid"/><text x="44.0" y="202.5" class="svg-label-r">0.25</text><line x1="52.0" y1="137.0" x2="406.0" y2="137.0" class="grid"/><text x="44.0" y="141.0" class="svg-label-r">0.5</text><line x1="52.0" y1="75.5" x2="406.0" y2="75.5" class="grid"/><text x="44.0" y="79.5" class="svg-label-r">0.75</text><line x1="52.0" y1="14.0" x2="406.0" y2="14.0" class="grid"/><text x="44.0" y="18.0" class="svg-label-r">1</text><text x="406.0" y="292.0" class="svg-tick svg-tick-r">predicted probability →</text><line x1="52.0" y1="260.0" x2="406.0" y2="14.0" class="reference"/><polyline points="64.14,229.46 105.36,213.24 140.05,200.18 176.31,161.85 212.32,137.00 246.91,122.18 283.12,100.25 317.16,90.64 353.59,73.86 393.35,40.47" class="series"/><circle cx="64.1" cy="229.5" r="3.4" class="point"/><circle cx="105.4" cy="213.2" r="3.4" class="point"/><circle cx="140.0" cy="200.2" r="3.4" class="point"/><circle cx="176.3" cy="161.9" r="3.4" class="point"/><circle cx="212.3" cy="137.0" r="3.4" class="point"/><circle cx="246.9" cy="122.2" r="3.4" class="point"/><circle cx="283.1" cy="100.3" r="3.4" class="point"/><circle cx="317.2" cy="90.6" r="3.4" class="point"/><circle cx="353.6" cy="73.9" r="3.4" class="point"/><circle cx="393.4" cy="40.5" r="3.4" class="point"/><text x="402.5" y="8.0" class="svg-note svg-note-end">perfect calibration</text></svg>
+      <figcaption>
+        <p>An over-confident model: predictions sit below the diagonal at the top end,
+        so it claims more risk than occurs. ECE
+        <code>0.051156</code>, Brier <code>0.185182</code>.</p>
+        <p class="fixture">Fixture: 4,000 synthetic cases; an over-confident model, seeded</p>
+      </figcaption>
+    </figure>
+
+    <figure>
+      <h3>Qini</h3>
+      <svg viewBox="0 0 420 300" role="img" aria-label="Qini curve. Incremental responders rise steeply while the ranking is still finding persuadable people, then flatten onto the random line." class="fig fig-square"><line x1="52.0" y1="260.0" x2="406.0" y2="260.0" class="axis"/><line x1="52.0" y1="260.0" x2="52.0" y2="264.0" class="axis"/><text x="52.0" y="276.0" class="svg-tick">0</text><line x1="140.5" y1="260.0" x2="140.5" y2="264.0" class="axis"/><text x="140.5" y="276.0" class="svg-tick">0.25</text><line x1="229.0" y1="260.0" x2="229.0" y2="264.0" class="axis"/><text x="229.0" y="276.0" class="svg-tick">0.5</text><line x1="317.5" y1="260.0" x2="317.5" y2="264.0" class="axis"/><text x="317.5" y="276.0" class="svg-tick">0.75</text><line x1="406.0" y1="260.0" x2="406.0" y2="264.0" class="axis"/><text x="406.0" y="276.0" class="svg-tick">1</text><line x1="52.0" y1="260.0" x2="406.0" y2="260.0" class="grid"/><text x="44.0" y="264.0" class="svg-label-r">0</text><line x1="52.0" y1="195.7" x2="406.0" y2="195.7" class="grid"/><text x="44.0" y="199.7" class="svg-label-r">250</text><line x1="52.0" y1="131.5" x2="406.0" y2="131.5" class="grid"/><text x="44.0" y="135.5" class="svg-label-r">500</text><line x1="52.0" y1="67.2" x2="406.0" y2="67.2" class="grid"/><text x="44.0" y="71.2" class="svg-label-r">750</text><text x="406.0" y="292.0" class="svg-tick svg-tick-r">fraction targeted →</text><line x1="52.0" y1="260.0" x2="406.0" y2="15.2" class="reference"/><polyline points="52.00,260.00 53.77,256.40 55.54,253.51 57.31,249.43 59.08,245.31 60.85,241.84 62.62,237.53 64.39,234.23 66.16,231.73 67.93,228.11 69.70,224.51 71.47,221.89 73.24,217.57 75.01,214.90 76.78,212.98 78.55,209.90 80.32,206.59 82.09,201.79 83.86,198.44 85.63,194.13 87.40,191.05 89.17,188.65 90.94,185.56 92.71,180.76 94.48,177.76 96.25,174.97 98.02,171.43 99.79,168.34 101.56,165.78 103.33,164.14 105.10,162.02 106.87,158.42 108.64,155.38 110.41,151.33 112.18,149.13 113.95,146.54 115.72,143.26 117.49,140.19 119.26,138.14 121.03,136.77 122.80,134.26 124.57,131.45 126.34,130.17 128.11,128.65 129.88,126.06 131.65,123.98 133.42,121.47 135.19,118.93 136.96,116.91 138.73,115.09 140.50,113.48 142.27,111.28 144.04,108.99 145.81,107.15 147.58,105.84 149.35,104.25 151.12,102.41 152.89,100.18 154.66,98.86 156.43,96.78 158.20,94.70 159.97,92.00 161.74,88.96 163.51,87.64 165.28,85.58 167.05,84.21 168.82,82.38 170.59,81.10 172.36,79.84 174.13,78.58 175.90,78.13 177.67,76.84 179.44,74.58 181.21,73.74 182.98,71.94 184.75,71.35 186.52,69.06 188.29,67.52 190.06,66.15 191.83,65.63 193.60,64.32 195.37,64.06 197.14,63.60 198.91,62.21 200.68,59.67 202.45,58.85 204.22,58.73 205.99,58.27 207.76,56.26 209.53,54.72 211.30,53.43 213.07,52.36 214.84,51.09 216.61,50.22 218.38,49.42 220.15,47.45 221.92,46.89 223.69,45.87 225.46,44.87 227.23,43.43 229.00,42.24 230.77,41.43 232.54,39.66 234.31,38.21 236.08,37.19 237.85,35.86 239.62,35.58 241.39,34.34 243.16,33.88 244.93,32.64 246.70,31.66 248.47,31.22 250.24,30.44 252.01,30.83 253.78,29.78 255.55,28.96 257.32,28.62 259.09,28.90 260.86,28.86 262.63,27.32 264.40,26.98 266.17,26.72 267.94,26.70 269.71,25.65 271.48,25.73 273.25,24.93 275.02,24.16 276.79,24.84 278.56,24.56 280.33,23.58 282.10,23.18 283.87,22.92 285.64,22.36 287.41,22.26 289.18,22.03 290.95,20.97 292.72,20.71 294.49,20.30 296.26,19.99 298.03,19.45 299.80,19.55 301.57,18.83 303.34,18.31 305.11,18.06 306.88,17.42 308.65,17.23 310.42,16.80 312.19,16.56 313.96,16.43 315.73,17.12 317.50,17.43 319.27,17.68 321.04,17.40 322.81,17.40 324.58,17.01 326.35,16.15 328.12,16.67 329.89,16.57 331.66,16.52 333.43,16.03 335.20,15.92 336.97,15.87 338.74,15.80 340.51,15.49 342.28,14.69 344.05,14.37 345.82,14.63 347.59,14.63 349.36,14.11 351.13,14.00 352.90,14.14 354.67,14.05 356.44,14.61 358.21,14.39 359.98,14.89 361.75,15.14 363.52,15.70 365.29,15.27 367.06,15.27 368.83,15.17 370.60,15.23 372.37,14.35 374.14,14.39 375.91,14.95 377.68,14.75 379.45,14.76 381.22,14.56 382.99,14.79 384.76,15.29 386.53,15.07 388.30,15.35 390.07,14.76 391.84,15.57 393.61,15.72 395.38,16.06 397.15,15.40 398.92,15.35 400.69,15.36 402.46,15.10 404.23,14.99 406.00,15.24" class="series"/><text x="200.7" y="156.7" class="svg-note">random targeting</text></svg>
+      <figcaption>
+        <p>The ranking finds persuadable people early, then flattens onto the random
+        line once they are exhausted. Coefficient
+        <code>249.437293</code> against
+        <code>952.337611</code> total incremental responders.</p>
+        <p class="fixture">Fixture: 6,000 synthetic cases, randomised treatment, 35% persuadable</p>
+      </figcaption>
+    </figure>
+
+    <figure>
+      <h3>Pinball loss by quantile</h3>
+      <svg viewBox="0 0 420 300" role="img" aria-label="Mean pinball loss at each quantile for two forecasters. They tie at the median, where both predict the same value, and the forecaster with the correct spread wins by a widening margin towards both tails." class="fig fig-square"><line x1="52.0" y1="260.0" x2="406.0" y2="260.0" class="axis"/><line x1="71.7" y1="260.0" x2="71.7" y2="264.0" class="axis"/><text x="71.7" y="276.0" class="svg-tick">0.1</text><line x1="150.3" y1="260.0" x2="150.3" y2="264.0" class="axis"/><text x="150.3" y="276.0" class="svg-tick">0.3</text><line x1="229.0" y1="260.0" x2="229.0" y2="264.0" class="axis"/><text x="229.0" y="276.0" class="svg-tick">0.5</text><line x1="307.7" y1="260.0" x2="307.7" y2="264.0" class="axis"/><text x="307.7" y="276.0" class="svg-tick">0.7</text><line x1="386.3" y1="260.0" x2="386.3" y2="264.0" class="axis"/><text x="386.3" y="276.0" class="svg-tick">0.9</text><line x1="52.0" y1="260.0" x2="406.0" y2="260.0" class="grid"/><text x="44.0" y="264.0" class="svg-label-r">0</text><line x1="52.0" y1="188.7" x2="406.0" y2="188.7" class="grid"/><text x="44.0" y="192.7" class="svg-label-r">2.5</text><line x1="52.0" y1="117.4" x2="406.0" y2="117.4" class="grid"/><text x="44.0" y="121.4" class="svg-label-r">5</text><line x1="52.0" y1="46.1" x2="406.0" y2="46.1" class="grid"/><text x="44.0" y="50.1" class="svg-label-r">7.5</text><text x="406.0" y="292.0" class="svg-tick svg-tick-r">quantile level →</text><polyline points="71.67,122.91 111.00,80.48 150.33,54.71 189.67,40.68 229.00,36.36 268.33,41.50 307.67,56.42 347.00,82.68 386.33,125.90" class="series-muted"/><circle cx="71.7" cy="122.9" r="3" class="point-muted"/><circle cx="111.0" cy="80.5" r="3" class="point-muted"/><circle cx="150.3" cy="54.7" r="3" class="point-muted"/><circle cx="189.7" cy="40.7" r="3" class="point-muted"/><circle cx="229.0" cy="36.4" r="3" class="point-muted"/><circle cx="268.3" cy="41.5" r="3" class="point-muted"/><circle cx="307.7" cy="56.4" r="3" class="point-muted"/><circle cx="347.0" cy="82.7" r="3" class="point-muted"/><circle cx="386.3" cy="125.9" r="3" class="point-muted"/><polyline points="71.67,161.08 111.00,101.65 150.33,64.30 189.67,42.88 229.00,36.36 268.33,44.87 307.67,67.55 347.00,105.33 386.33,162.56" class="series"/><circle cx="71.7" cy="161.1" r="3" class="point"/><circle cx="111.0" cy="101.6" r="3" class="point"/><circle cx="150.3" cy="64.3" r="3" class="point"/><circle cx="189.7" cy="42.9" r="3" class="point"/><circle cx="229.0" cy="36.4" r="3" class="point"/><circle cx="268.3" cy="44.9" r="3" class="point"/><circle cx="307.7" cy="67.5" r="3" class="point"/><circle cx="347.0" cy="105.3" r="3" class="point"/><circle cx="386.3" cy="162.6" r="3" class="point"/><line x1="83.5" y1="207.8" x2="111.0" y2="207.8" class="series-muted"/><text x="118.9" y="210.8" class="svg-note">over-confident (sd 8)</text><line x1="83.5" y1="229.9" x2="111.0" y2="229.9" class="series"/><text x="118.9" y="232.9" class="svg-note svg-note-accent">correct spread (sd 20)</text></svg>
+      <figcaption>
+        <p>Two forecasters with the same centre. The over-confident one loses most in
+        the tails &mdash; exactly where a high service level reads the distribution.</p>
+        <p class="fixture">Fixture: 3,000 draws from Normal(100, 20); one forecaster with the right spread, one over-confident at sd 8</p>
+      </figcaption>
+    </figure>
+
+    <figure>
+      <h3>Expected cost by threshold</h3>
+      <svg viewBox="0 0 420 300" role="img" aria-label="Expected cost per case against the decision threshold. The basin around the minimum is flat, so the exact cutoff matters less than the cost estimate that produced it." class="fig fig-square"><line x1="52.0" y1="260.0" x2="406.0" y2="260.0" class="axis"/><line x1="52.0" y1="260.0" x2="52.0" y2="264.0" class="axis"/><text x="52.0" y="276.0" class="svg-tick">0</text><line x1="140.5" y1="260.0" x2="140.5" y2="264.0" class="axis"/><text x="140.5" y="276.0" class="svg-tick">0.25</text><line x1="229.0" y1="260.0" x2="229.0" y2="264.0" class="axis"/><text x="229.0" y="276.0" class="svg-tick">0.5</text><line x1="317.5" y1="260.0" x2="317.5" y2="264.0" class="axis"/><text x="317.5" y="276.0" class="svg-tick">0.75</text><line x1="406.0" y1="260.0" x2="406.0" y2="264.0" class="axis"/><text x="406.0" y="276.0" class="svg-tick">1</text><line x1="52.0" y1="260.0" x2="406.0" y2="260.0" class="grid"/><text x="44.0" y="264.0" class="svg-label-r">0</text><line x1="52.0" y1="167.2" x2="406.0" y2="167.2" class="grid"/><text x="44.0" y="171.2" class="svg-label-r">1</text><line x1="52.0" y1="74.4" x2="406.0" y2="74.4" class="grid"/><text x="44.0" y="78.4" class="svg-label-r">2</text><text x="406.0" y="292.0" class="svg-tick svg-tick-r">threshold →</text><polyline points="52.02,214.06 53.48,214.37 54.66,214.65 55.72,214.95 56.71,215.26 57.97,215.57 58.95,215.87 59.85,216.18 60.87,216.48 62.11,216.73 63.62,217.04 64.78,217.26 66.05,217.51 67.15,217.76 68.20,217.96 69.18,218.21 70.43,218.38 71.75,218.66 73.03,218.91 74.17,219.02 75.31,219.13 76.50,219.27 77.83,219.44 79.06,219.57 80.26,219.74 81.31,219.91 82.56,220.05 83.56,220.19 84.85,220.33 85.88,220.41 87.10,220.58 88.29,220.72 89.27,220.83 90.47,220.97 91.73,220.94 93.08,220.99 94.09,221.05 95.35,221.11 96.63,221.19 97.77,221.33 99.14,221.33 100.43,221.27 101.38,221.33 102.68,221.33 103.91,221.55 105.09,221.55 106.21,221.50 107.63,221.50 108.98,221.52 110.23,221.44 111.34,221.41 112.56,221.41 113.80,221.41 114.84,221.41 115.93,221.55 117.06,221.61 118.33,221.52 119.88,221.47 120.92,221.36 122.01,221.33 123.28,221.36 124.57,221.33 125.53,221.11 127.12,221.08 128.25,220.99 129.45,220.91 130.54,220.72 131.47,220.66 132.74,220.41 133.73,220.35 134.87,220.35 136.07,220.35 137.16,220.08 138.53,219.99 139.59,219.80 140.47,219.71 141.60,219.46 142.65,219.21 143.94,219.02 145.16,218.91 146.36,218.88 147.41,218.93 148.54,218.74 149.61,218.49 150.71,218.24 151.96,217.99 153.14,217.63 154.25,217.51 155.44,217.26 156.77,217.10 157.92,216.76 158.82,216.54 160.15,216.37 161.15,216.26 162.34,215.98 163.66,215.73 164.69,215.31 165.86,215.20 167.20,214.84 168.59,214.45 169.67,214.15 170.80,213.89 171.77,213.50 173.02,213.23 174.33,212.81 175.35,212.53 176.44,212.14 177.60,211.83 178.92,211.44 180.15,211.14 181.12,210.78 182.35,210.33 183.58,210.05 185.02,209.66 186.28,209.41 187.29,209.13 188.56,208.74 189.73,208.38 190.95,207.99 191.82,207.66 192.87,207.24 194.34,206.88 195.49,206.38 196.70,205.96 198.03,205.63 199.22,204.99 200.66,204.34 201.97,203.90 202.80,203.45 203.86,203.09 204.86,202.51 205.88,202.03 206.78,201.42 207.68,200.92 208.80,200.50 210.01,200.03 210.99,199.50 212.33,198.92 213.80,198.39 215.07,197.72 216.41,197.33 217.43,196.63 218.72,196.10 219.96,195.55 220.76,194.82 221.99,194.24 223.15,193.77 224.18,193.24 225.22,192.68 226.39,191.90 227.60,191.34 228.80,190.79 230.20,190.15 231.58,189.45 232.70,188.56 233.82,187.92 234.86,187.31 236.10,186.75 236.99,185.89 238.30,185.08 239.69,184.33 240.60,183.69 241.84,182.88 243.09,182.18 244.03,181.68 245.16,181.07 246.56,180.18 247.71,179.43 248.95,178.98 250.08,178.31 251.22,177.51 252.55,176.67 253.69,176.00 254.82,175.11 256.06,174.47 257.24,173.69 258.46,172.80 259.43,171.97 260.58,171.10 261.93,170.27 263.42,169.49 264.73,168.57 266.00,167.87 267.28,166.87 268.54,166.01 269.83,165.26 271.26,164.53 272.30,163.84 273.36,162.94 274.50,162.05 275.55,161.16 276.53,160.36 277.88,159.41 279.04,158.57 280.21,157.71 281.28,156.79 282.47,155.93 283.47,154.93 284.45,154.15 285.50,153.14 286.79,152.17 287.92,151.31 288.89,150.30 290.17,149.39 291.34,148.50 292.67,147.69 293.97,146.88 295.27,145.77 296.38,144.90 297.65,144.01 298.88,143.12 300.24,142.31 301.43,141.31 302.55,140.34 303.87,139.25 305.27,138.22 306.83,137.27 308.05,136.13 309.30,135.10 310.67,133.99 311.81,133.04 313.15,131.87 314.20,130.84 315.45,129.81 316.83,128.78 317.77,127.53 318.56,126.42 319.70,125.33 320.80,124.27 321.87,123.27 322.97,122.07 323.84,120.93 325.01,119.93 326.15,118.98 327.12,117.95 328.37,116.81 329.57,115.64 330.59,114.58 331.62,113.41 332.96,112.36 333.85,111.30 335.12,110.02 336.23,108.71 337.37,107.60 338.46,106.45 339.33,105.17 340.40,104.06 341.51,102.72 342.49,101.55 343.79,100.36 344.77,99.10 345.96,97.85 347.16,96.52 348.28,95.23 349.69,94.18 350.76,93.01 351.77,91.73 353.10,90.36 354.23,89.14 355.25,87.86 356.33,86.66 357.22,85.41 358.40,84.07 359.60,82.82 360.68,81.51 361.85,80.20 363.19,78.81 364.39,77.39 365.42,76.00 366.49,74.58 367.79,73.07 369.10,71.82 370.32,70.51 371.38,69.09 372.58,67.73 373.76,66.36 375.02,65.03 376.15,63.66 377.33,62.24 378.63,60.85 379.56,59.40 380.67,57.95 381.66,56.51 383.18,55.11 384.22,53.67 385.39,52.30 386.47,50.94 387.58,49.52 388.79,48.13 389.82,46.68 391.17,45.23 392.40,43.78 393.87,42.36 395.03,40.89 396.01,39.36 397.11,37.83 398.37,36.29 399.38,34.79 400.43,33.31 401.46,31.81 402.46,30.28 403.56,28.78 404.88,27.25 405.93,25.71" class="series"/><line x1="117.4" y1="14.0" x2="117.4" y2="260.0" class="origin"/><text x="123.4" y="26.0" class="svg-note svg-note-accent">optimum 0.185</text></svg>
+      <figcaption>
+        <p>Empirical optimum <code>0.184692</code> against the
+        analytic <code>0.166667</code>. The basin is flat, so the
+        cost estimate deserves more scrutiny than the cutoff.</p>
+        <p class="fixture">Fixture: 20,000 synthetic cases with calibrated probabilities; a false negative costs 5x a false positive</p>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="wrap api">
+  <div class="section-head">
+    <h2>API</h2>
+    <p class="section-note">
+      Signatures and summaries are read from the installed package. Each worked example
+      is executed as a doctest by the test suite, so an example that drifts from its
+      code fails the build.
+    </p>
+  </div>
+  <section class="api-module"><h2><code>spine.splitting</code></h2><p class="module-blurb">Temporal and group-aware splitters. Nothing here shuffles.</p><article class="member" id="spine.splitting.GroupTemporalSplit"><h3><span class="member-kind">class</span><code>GroupTemporalSplit</code><span class="member-sig">(n_splits: &#x27;int&#x27; = 5, horizon: &#x27;int&#x27; = 1, step: &#x27;int | None&#x27; = None, min_train_size: &#x27;int | None&#x27; = None, window: &#x27;str&#x27; = &#x27;expanding&#x27;, window_size: &#x27;int | None&#x27; = None, gap: &#x27;int&#x27; = 0) -&gt; &#x27;None&#x27;</span></h3><p>Rolling-origin cross-validation over unique time keys, for panel data.</p><pre class="example"><code>Two rows per day across four days, testing on the last day:
+
+&gt;&gt;&gt; import numpy as np, pandas as pd
+&gt;&gt;&gt; days = np.repeat(pd.date_range(&quot;2026-01-01&quot;, periods=4, freq=&quot;D&quot;), 2)
+&gt;&gt;&gt; train, test = next(iter(GroupTemporalSplit(n_splits=1, horizon=1).split(days)))
+&gt;&gt;&gt; train.tolist(), test.tolist()
+([0, 1, 2, 3, 4, 5], [6, 7])</code></pre></article><article class="member" id="spine.splitting.RollingOriginSplit"><h3><span class="member-kind">class</span><code>RollingOriginSplit</code><span class="member-sig">(n_splits: &#x27;int&#x27; = 5, horizon: &#x27;int&#x27; = 1, step: &#x27;int | None&#x27; = None, min_train_size: &#x27;int | None&#x27; = None, window: &#x27;str&#x27; = &#x27;expanding&#x27;, window_size: &#x27;int | None&#x27; = None, gap: &#x27;int&#x27; = 0) -&gt; &#x27;None&#x27;</span></h3><p>Rolling-origin cross-validation over an ordered series.</p><pre class="example"><code>Ten observations, three folds of two, tiling the end of the series:
+
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; splitter = RollingOriginSplit(n_splits=3, horizon=2)
+&gt;&gt;&gt; for train, test in splitter.split(np.arange(10)):
+...     print(train.tolist(), &quot;-&gt;&quot;, test.tolist())
+[0, 1, 2, 3] -&gt; [4, 5]
+[0, 1, 2, 3, 4, 5] -&gt; [6, 7]
+[0, 1, 2, 3, 4, 5, 6, 7] -&gt; [8, 9]</code></pre></article><article class="member" id="spine.splitting.temporal_train_test_split"><h3><span class="member-kind">function</span><code>temporal_train_test_split</code><span class="member-sig">(frame: &#x27;pd.DataFrame&#x27;, time_col: &#x27;str&#x27;, cutoff: &#x27;Any&#x27;) -&gt; &#x27;tuple[pd.DataFrame, pd.DataFrame]&#x27;</span></h3><p>Split a frame at a single point in time.</p><pre class="example"><code>&gt;&gt;&gt; import pandas as pd
+&gt;&gt;&gt; frame = pd.DataFrame(
+...     {&quot;date&quot;: pd.date_range(&quot;2026-01-01&quot;, periods=4), &quot;value&quot;: [1, 2, 3, 4]}
+... )
+&gt;&gt;&gt; train, test = temporal_train_test_split(frame, &quot;date&quot;, &quot;2026-01-03&quot;)
+&gt;&gt;&gt; train[&quot;value&quot;].tolist(), test[&quot;value&quot;].tolist()
+([1, 2], [3, 4])</code></pre></article></section><section class="api-module"><h2><code>spine.metrics</code></h2><p class="module-blurb">Forecasting, classification and uplift metrics.</p><article class="member" id="spine.metrics.brier_score"><h3><span class="member-kind">function</span><code>brier_score</code><span class="member-sig">(y_true: &#x27;ArrayLike&#x27;, y_prob: &#x27;ArrayLike&#x27;) -&gt; &#x27;float&#x27;</span></h3><p>Brier score: mean squared error of a probability forecast.</p><pre class="example"><code>&gt;&gt;&gt; round(brier_score([0, 0, 1, 1], [0.1, 0.2, 0.3, 0.9]), 6)
+0.1375</code></pre></article><article class="member" id="spine.metrics.calibration_bins"><h3><span class="member-kind">function</span><code>calibration_bins</code><span class="member-sig">(y_true: &#x27;ArrayLike&#x27;, y_prob: &#x27;ArrayLike&#x27;, n_bins: &#x27;int&#x27; = 10, strategy: &#x27;str&#x27; = &#x27;uniform&#x27;) -&gt; &#x27;pd.DataFrame&#x27;</span></h3><p>Bin predicted probabilities and report the observed rate in each bin.</p><pre class="example"><code>&gt;&gt;&gt; frame = calibration_bins([0, 0, 1, 1], [0.1, 0.2, 0.3, 0.9], n_bins=2)
+&gt;&gt;&gt; frame[[&quot;n&quot;, &quot;mean_predicted&quot;, &quot;observed_rate&quot;]].round(6).to_dict(&quot;records&quot;)
+[{&#x27;n&#x27;: 3, &#x27;mean_predicted&#x27;: 0.2, &#x27;observed_rate&#x27;: 0.333333}, {&#x27;n&#x27;: 1, &#x27;mean_predicted&#x27;: 0.9, &#x27;observed_rate&#x27;: 1.0}]</code></pre></article><article class="member" id="spine.metrics.expected_calibration_error"><h3><span class="member-kind">function</span><code>expected_calibration_error</code><span class="member-sig">(y_true: &#x27;ArrayLike&#x27;, y_prob: &#x27;ArrayLike&#x27;, n_bins: &#x27;int&#x27; = 10, strategy: &#x27;str&#x27; = &#x27;uniform&#x27;) -&gt; &#x27;float&#x27;</span></h3><p>Expected Calibration Error.</p><pre class="example"><code>Two bins: three predictions averaging 0.2 against an observed rate of 1/3, and
+one prediction of 0.9 against an observed rate of 1.
+
+&gt;&gt;&gt; round(expected_calibration_error([0, 0, 1, 1], [0.1, 0.2, 0.3, 0.9], n_bins=2), 6)
+0.125</code></pre></article><article class="member" id="spine.metrics.mase"><h3><span class="member-kind">function</span><code>mase</code><span class="member-sig">(y_true: &#x27;ArrayLike&#x27;, y_pred: &#x27;ArrayLike&#x27;, y_train: &#x27;ArrayLike&#x27;, seasonality: &#x27;int&#x27; = 1) -&gt; &#x27;float&#x27;</span></h3><p>Mean Absolute Scaled Error.</p><pre class="example"><code>Training window [1, 3, 2, 6] has lag-1 differences 2, 1 and 4, so the scale is
+7/3. A forecast of [7, 7] against actuals of [8, 4] has an MAE of 2.
+
+&gt;&gt;&gt; round(mase([8.0, 4.0], [7.0, 7.0], [1.0, 3.0, 2.0, 6.0], seasonality=1), 6)
+0.857143</code></pre></article><article class="member" id="spine.metrics.mean_pinball_by_quantile"><h3><span class="member-kind">function</span><code>mean_pinball_by_quantile</code><span class="member-sig">(y_true: &#x27;ArrayLike&#x27;, y_pred_quantiles: &#x27;ArrayLike&#x27;, quantile_levels: &#x27;ArrayLike&#x27;) -&gt; &#x27;NDArray[np.float64]&#x27;</span></h3><p>Mean pinball loss at each of several quantile levels.</p><pre class="example"><code>&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; preds = np.array([[8.0, 12.0], [8.0, 12.0]])
+&gt;&gt;&gt; mean_pinball_by_quantile([10.0, 10.0], preds, [0.1, 0.9]).round(12)
+array([0.2, 0.2])</code></pre></article><article class="member" id="spine.metrics.pinball_loss"><h3><span class="member-kind">function</span><code>pinball_loss</code><span class="member-sig">(y_true: &#x27;ArrayLike&#x27;, y_pred: &#x27;ArrayLike&#x27;, quantile: &#x27;float&#x27;) -&gt; &#x27;float&#x27;</span></h3><p>Mean pinball (quantile) loss at a single quantile level.</p><pre class="example"><code>At q=0.9, under-forecasting 10 as 8 costs 0.9 x 2; over-forecasting it as 12
+costs only 0.1 x 2.
+
+&gt;&gt;&gt; pinball_loss([10.0], [8.0], 0.9)
+1.8
+&gt;&gt;&gt; round(pinball_loss([10.0], [12.0], 0.9), 12)
+0.2</code></pre></article><article class="member" id="spine.metrics.pr_auc"><h3><span class="member-kind">function</span><code>pr_auc</code><span class="member-sig">(y_true: &#x27;ArrayLike&#x27;, y_score: &#x27;ArrayLike&#x27;) -&gt; &#x27;float&#x27;</span></h3><p>Area under the precision-recall curve, as average precision.</p><pre class="example"><code>Scores in descending order 0.8(1), 0.7(0), 0.6(1), 0.5(0): precision is 1 at
+recall 0.5 and 2/3 at recall 1.0, giving 0.5 + 1/3.
+
+&gt;&gt;&gt; round(pr_auc([1, 0, 1, 0], [0.8, 0.7, 0.6, 0.5]), 6)
+0.833333</code></pre></article><article class="member" id="spine.metrics.qini_auc"><h3><span class="member-kind">function</span><code>qini_auc</code><span class="member-sig">(y: &#x27;ArrayLike&#x27;, treatment: &#x27;ArrayLike&#x27;, uplift_score: &#x27;ArrayLike&#x27;) -&gt; &#x27;float&#x27;</span></h3><p>Qini coefficient: area between the Qini curve and random targeting.</p><pre class="example"><code>The curve reaches 2 incremental responders, enclosing an area of 1.25 over
+the fraction axis. Random targeting to the same endpoint encloses 1.0, so the
+ranking is worth 0.25.
+
+&gt;&gt;&gt; round(qini_auc([1, 0, 1, 0], [1, 0, 1, 0], [0.9, 0.8, 0.7, 0.6]), 6)
+0.25</code></pre></article><article class="member" id="spine.metrics.qini_curve"><h3><span class="member-kind">function</span><code>qini_curve</code><span class="member-sig">(y: &#x27;ArrayLike&#x27;, treatment: &#x27;ArrayLike&#x27;, uplift_score: &#x27;ArrayLike&#x27;) -&gt; &#x27;tuple[NDArray[np.float64], NDArray[np.float64]]&#x27;</span></h3><p>Qini curve: incremental responders as a function of how many are targeted.</p><pre class="example"><code>Alternating treated and control, with the two responders both treated and
+ranked first:
+
+&gt;&gt;&gt; frac, gain = qini_curve([1, 0, 1, 0], [1, 0, 1, 0], [0.9, 0.8, 0.7, 0.6])
+&gt;&gt;&gt; gain.round(6)
+array([0., 1., 1., 2., 2.])</code></pre></article></section><section class="api-module"><h2><code>spine.decisions</code></h2><p class="module-blurb">The bridge from a forecast or a probability to an action.</p><article class="member" id="spine.decisions.critical_fractile"><h3><span class="member-kind">function</span><code>critical_fractile</code><span class="member-sig">(cu: &#x27;float&#x27;, co: &#x27;float&#x27;) -&gt; &#x27;float&#x27;</span></h3><p>Newsvendor critical fractile: the optimal service level.</p><pre class="example"><code>Losing 5 on a stockout and 2 on a leftover implies a 71.4% service level.
+
+&gt;&gt;&gt; round(critical_fractile(5.0, 2.0), 6)
+0.714286</code></pre></article><article class="member" id="spine.decisions.expected_cost_curve"><h3><span class="member-kind">function</span><code>expected_cost_curve</code><span class="member-sig">(y_true: &#x27;ArrayLike&#x27;, y_prob: &#x27;ArrayLike&#x27;, cost_matrix: &#x27;ArrayLike&#x27;) -&gt; &#x27;pd.DataFrame&#x27;</span></h3><p>Expected cost per observation at every candidate threshold.</p><pre class="example"><code>&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; costs = np.array([[0.0, 1.0], [5.0, 0.0]])
+&gt;&gt;&gt; frame = expected_cost_curve([0, 1, 0, 1], [0.2, 0.3, 0.6, 0.7], costs)
+&gt;&gt;&gt; frame[&quot;expected_cost&quot;].round(6).tolist()
+[0.5, 0.25, 1.5, 1.25]</code></pre></article><article class="member" id="spine.decisions.newsvendor_cost"><h3><span class="member-kind">function</span><code>newsvendor_cost</code><span class="member-sig">(order_quantity: &#x27;ArrayLike&#x27;, realised_demand: &#x27;ArrayLike&#x27;, cu: &#x27;float&#x27;, co: &#x27;float&#x27;) -&gt; &#x27;NDArray[np.float64]&#x27;</span></h3><p>Realised newsvendor cost, per period.</p><pre class="example"><code>Ordering 100 against demand of 120, 90 and 100:
+
+&gt;&gt;&gt; newsvendor_cost([100.0, 100.0, 100.0], [120.0, 90.0, 100.0], 5.0, 2.0)
+array([100.,  20.,   0.])</code></pre></article><article class="member" id="spine.decisions.newsvendor_empirical"><h3><span class="member-kind">function</span><code>newsvendor_empirical</code><span class="member-sig">(quantile_forecasts: &#x27;ArrayLike&#x27;, quantile_levels: &#x27;ArrayLike&#x27;, cu: &#x27;float&#x27;, co: &#x27;float&#x27;) -&gt; &#x27;float&#x27;</span></h3><p>Optimal newsvendor order quantity from a grid of quantile forecasts.</p><pre class="example"><code>A critical fractile of 5/7 sits between the 0.7 and 0.8 forecasts.
+
+&gt;&gt;&gt; round(newsvendor_empirical([100.0, 110.0, 120.0], [0.5, 0.7, 0.8], 5.0, 2.0), 6)
+111.428571</code></pre></article><article class="member" id="spine.decisions.newsvendor_parametric"><h3><span class="member-kind">function</span><code>newsvendor_parametric</code><span class="member-sig">(distribution: &#x27;_HasPPF&#x27;, cu: &#x27;float&#x27;, co: &#x27;float&#x27;) -&gt; &#x27;float&#x27;</span></h3><p>Optimal newsvendor order quantity for a parametric demand distribution.</p><pre class="example"><code>Demand ~ Normal(100, 20) with cu=5 and co=2 gives a critical fractile of 5/7
+and an order of 100 + 20 * Phi^-1(5/7).
+
+&gt;&gt;&gt; from scipy import stats
+&gt;&gt;&gt; round(newsvendor_parametric(stats.norm(loc=100, scale=20), cu=5.0, co=2.0), 6)
+111.318976</code></pre></article><article class="member" id="spine.decisions.optimal_threshold"><h3><span class="member-kind">function</span><code>optimal_threshold</code><span class="member-sig">(y_true: &#x27;ArrayLike&#x27;, y_prob: &#x27;ArrayLike&#x27;, cost_matrix: &#x27;ArrayLike&#x27;) -&gt; &#x27;tuple[float, float]&#x27;</span></h3><p>Cost-minimising classification threshold, chosen empirically.</p><pre class="example"><code>False negatives cost five times a false positive, so the cutoff sits low.
+
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; costs = np.array([[0.0, 1.0], [5.0, 0.0]])
+&gt;&gt;&gt; threshold, cost = optimal_threshold([0, 1, 0, 1], [0.2, 0.3, 0.6, 0.7], costs)
+&gt;&gt;&gt; round(threshold, 6), round(cost, 6)
+(0.3, 0.25)</code></pre></article><article class="member" id="spine.decisions.safety_stock"><h3><span class="member-kind">function</span><code>safety_stock</code><span class="member-sig">(demand_std: &#x27;float&#x27;, lead_time: &#x27;float&#x27;, service_level: &#x27;float&#x27;) -&gt; &#x27;float&#x27;</span></h3><p>Safety stock for a target service level over a replenishment lead time.</p><pre class="example"><code>Demand sd of 20 over a 4-period lead time at a 95% service level:
+
+&gt;&gt;&gt; round(safety_stock(demand_std=20.0, lead_time=4.0, service_level=0.95), 6)
+65.794145</code></pre></article></section><section class="api-module"><h2><code>spine.fairness</code></h2><p class="module-blurb">Group rates, disparity ratios, calibration by group.</p><article class="member" id="spine.fairness.calibration_by_group"><h3><span class="member-kind">function</span><code>calibration_by_group</code><span class="member-sig">(y_true: &#x27;ArrayLike&#x27;, y_prob: &#x27;ArrayLike&#x27;, sensitive: &#x27;ArrayLike&#x27;) -&gt; &#x27;pd.DataFrame&#x27;</span></h3><p>Mean predicted probability against observed rate, per group.</p><pre class="example"><code>&gt;&gt;&gt; frame = calibration_by_group([0, 0, 1, 1], [0.2, 0.2, 0.8, 0.8], list(&quot;aabb&quot;))
+&gt;&gt;&gt; frame[&quot;calibration_gap&quot;].round(6).to_dict()
+{&#x27;a&#x27;: 0.2, &#x27;b&#x27;: -0.2}</code></pre></article><article class="member" id="spine.fairness.disparity_ratio"><h3><span class="member-kind">function</span><code>disparity_ratio</code><span class="member-sig">(frame: &#x27;pd.DataFrame&#x27;, column: &#x27;str&#x27;, reference: &#x27;object | None&#x27; = None) -&gt; &#x27;float&#x27;</span></h3><p>Ratio between the least and most favoured group on one metric.</p><pre class="example"><code>&gt;&gt;&gt; frame = group_metrics(
+...     [1, 1, 0, 0, 1, 1, 1, 0], [1, 0, 1, 0, 1, 1, 0, 0], list(&quot;aaaabbbb&quot;)
+... )
+&gt;&gt;&gt; round(disparity_ratio(frame, &quot;tpr&quot;), 6)
+0.75</code></pre></article><article class="member" id="spine.fairness.group_metrics"><h3><span class="member-kind">function</span><code>group_metrics</code><span class="member-sig">(y_true: &#x27;ArrayLike&#x27;, y_pred: &#x27;ArrayLike&#x27;, sensitive: &#x27;ArrayLike&#x27;) -&gt; &#x27;pd.DataFrame&#x27;</span></h3><p>Confusion-derived rates for each level of a sensitive attribute.</p><pre class="example"><code>&gt;&gt;&gt; frame = group_metrics([1, 1, 0, 0], [1, 0, 1, 0], [&quot;a&quot;, &quot;a&quot;, &quot;b&quot;, &quot;b&quot;])
+&gt;&gt;&gt; frame[[&quot;n&quot;, &quot;selection_rate&quot;]].to_dict(&quot;index&quot;)
+{&#x27;a&#x27;: {&#x27;n&#x27;: 2, &#x27;selection_rate&#x27;: 0.5}, &#x27;b&#x27;: {&#x27;n&#x27;: 2, &#x27;selection_rate&#x27;: 0.5}}</code></pre></article></section><section class="api-module"><h2><code>spine.cards</code></h2><p class="module-blurb">Model card generator. YAML in, markdown out.</p><article class="member" id="spine.cards.CardValidationError"><h3><span class="member-kind">class</span><code>CardValidationError</code><span class="member-sig"></span></h3><p>Raised when a card specification is not renderable.</p></article><article class="member" id="spine.cards.render_card"><h3><span class="member-kind">function</span><code>render_card</code><span class="member-sig">(spec: &#x27;Any&#x27;) -&gt; &#x27;str&#x27;</span></h3><p>Render a validated card specification as markdown.</p><pre class="example"><code>&gt;&gt;&gt; card = {
+...     &quot;model&quot;: {&quot;name&quot;: &quot;Demo&quot;, &quot;version&quot;: &quot;1.0&quot;, &quot;owner&quot;: &quot;K. Mathur&quot;},
+...     &quot;intended_use&quot;: &quot;Illustration.&quot;,
+...     &quot;data&quot;: {&quot;source&quot;: &quot;fixture&quot;, &quot;provenance&quot;: &quot;real&quot;},
+...     &quot;metrics&quot;: [{&quot;name&quot;: &quot;MASE&quot;, &quot;value&quot;: 0.83, &quot;split&quot;: &quot;rolling origin&quot;}],
+...     &quot;limitations&quot;: [&quot;Not a real model.&quot;],
+... }
+&gt;&gt;&gt; render_card(card).splitlines()[0]
+&#x27;# Model card: Demo&#x27;</code></pre></article><article class="member" id="spine.cards.validate_card"><h3><span class="member-kind">function</span><code>validate_card</code><span class="member-sig">(spec: &#x27;Any&#x27;) -&gt; &#x27;list[str]&#x27;</span></h3><p>Report everything wrong with a card specification.</p><pre class="example"><code>Every problem comes back together, not one per rerun:
+
+&gt;&gt;&gt; problems = validate_card({&quot;model&quot;: {&quot;name&quot;: &quot;m&quot;}})
+&gt;&gt;&gt; len(problems)
+6
+&gt;&gt;&gt; [p for p in problems if &quot;version&quot; in p]
+[&quot;model is missing &#x27;version&#x27;&quot;]</code></pre></article></section><section class="api-module"><h2><code>spine.io</code></h2><p class="module-blurb">Shared data root, schema declaration, validating reader.</p><article class="member" id="spine.io.SchemaError"><h3><span class="member-kind">class</span><code>SchemaError</code><span class="member-sig"></span></h3><p>Raised when a table does not match its declared schema.</p></article><article class="member" id="spine.io.TableSchema"><h3><span class="member-kind">class</span><code>TableSchema</code><span class="member-sig">(columns: &#x27;Mapping[str, str]&#x27;, non_null: &#x27;Sequence[str]&#x27; = &lt;factory&gt;, unique: &#x27;Sequence[str]&#x27; = &lt;factory&gt;, monotonic: &#x27;str | None&#x27; = None) -&gt; None</span></h3><p>What a table must look like.</p><pre class="example"><code>&gt;&gt;&gt; schema = TableSchema(
+...     columns={&quot;store&quot;: &quot;int&quot;, &quot;date&quot;: &quot;datetime&quot;},
+...     unique=(&quot;store&quot;, &quot;date&quot;),
+...     monotonic=&quot;date&quot;,
+... )
+&gt;&gt;&gt; schema.columns[&quot;store&quot;]
+&#x27;int&#x27;</code></pre></article><article class="member" id="spine.io.data_root"><h3><span class="member-kind">function</span><code>data_root</code><span class="member-sig">(start: &#x27;str | Path | None&#x27; = None) -&gt; &#x27;Path&#x27;</span></h3><p>Resolve the shared data directory.</p></article><article class="member" id="spine.io.read_table"><h3><span class="member-kind">function</span><code>read_table</code><span class="member-sig">(path: &#x27;str | Path&#x27;, schema: &#x27;TableSchema | None&#x27; = None, **read_kwargs: &#x27;Any&#x27;) -&gt; &#x27;pd.DataFrame&#x27;</span></h3><p>Read a CSV or Parquet file and validate it against a schema.</p></article><article class="member" id="spine.io.validate"><h3><span class="member-kind">function</span><code>validate</code><span class="member-sig">(frame: &#x27;pd.DataFrame&#x27;, schema: &#x27;TableSchema&#x27;) -&gt; &#x27;list[str]&#x27;</span></h3><p>Report every way a frame fails its schema.</p><pre class="example"><code>&gt;&gt;&gt; import pandas as pd
+&gt;&gt;&gt; schema = TableSchema(columns={&quot;store&quot;: &quot;int&quot;}, non_null=(&quot;store&quot;,))
+&gt;&gt;&gt; validate(pd.DataFrame({&quot;store&quot;: [&quot;a&quot;, &quot;b&quot;]}), schema)
+[&quot;column &#x27;store&#x27; is declared int but arrived as str&quot;]</code></pre></article></section>
+</section>
+</main>
+
+<footer class="wrap">
+  <h2>Provenance</h2>
+  <p>
+    Every number above comes from <code>reports/proof.json</code>, written by
+    <code>scripts/proof.py</code> and rendered by <code>docs/build.py</code>. Nothing
+    on this page is typed by hand. The proof file carries no timestamp, so regenerating
+    it on unchanged code produces a byte-identical file &mdash; which is what makes
+    &ldquo;the page matches the code&rdquo; checkable rather than asserted.
+  </p>
+  <pre class="example"><code>make all   # lint, test, proof, docs</code></pre>
+  <ul class="versions">
+    <li><span>spine</span><span>0.1.0</span></li>
+    <li><span>python</span><span>3.11.15</span></li>
+    <li><span>numpy</span><span>2.4.6</span></li><li><span>pandas</span><span>3.0.5</span></li><li><span>scipy</span><span>1.17.1</span></li><li><span>scikit-learn</span><span>1.9.0</span></li><li><span>utilsforecast</span><span>0.2.15</span></li>
+    <li><span>seed</span><span>20260827</span></li>
+  </ul>
+  <p class="colophon">
+    Krishna Mathur &middot; Master of AI in Business, Term 4 &middot; academic project.
+    Set in Spectral and IBM Plex Mono.
+  </p>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var button = document.getElementById('theme');
+  var label = document.getElementById('theme-label');
+
+  function systemDark() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+  function current() {
+    var set = root.getAttribute('data-theme');
+    return set || (systemDark() ? 'dark' : 'light');
+  }
+  function paint() {
+    var next = current() === 'dark' ? 'Light' : 'Dark';
+    label.textContent = next;
+    button.setAttribute('aria-label', 'Switch to ' + next.toLowerCase() + ' theme');
+  }
+  try {
+    var saved = localStorage.getItem('spine-theme');
+    if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
+  } catch (e) { /* private browsing, or storage blocked */ }
+
+  paint();
+  button.addEventListener('click', function () {
+    var next = current() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('spine-theme', next); } catch (e) { /* ignore */ }
+    paint();
+  });
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paint);
+  }
+})();
+</script>
+</body>
+</html>
